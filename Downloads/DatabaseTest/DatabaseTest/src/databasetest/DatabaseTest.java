@@ -7,14 +7,13 @@ public class DatabaseTest {
 
     public JSONArray getJSONData() {
         
+        JSONArray array = new JSONArray();
         Connection conn = null;
         PreparedStatement pstSelect = null, pstUpdate = null;
         ResultSet resultset = null;
         ResultSetMetaData metadata = null;
-        
-        String query, key, value;
-        String newFirstName = "Alfred", newLastName = "Neuman";
-        
+        String query;
+
         boolean hasresults;
         int resultCount, columnCount, updateCount = 0;
         
@@ -22,7 +21,7 @@ public class DatabaseTest {
             
             /* Identify the Server */
             
-            String server = ("jdbc:mysql://localhost/db_test");
+            String server = ("jdbc:mysql://localhost/p2_test");
             String username = "root";
             String password = "CS488";
             System.out.println("Connecting to " + server + "...");
@@ -42,33 +41,6 @@ public class DatabaseTest {
                 /* Connection Open! */
                 
                 System.out.println("Connected Successfully!");
-                
-                // Prepare Update Query
-                
-                query = "INSERT INTO people (firstname, lastname) VALUES (?, ?)";
-                pstUpdate = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
-                pstUpdate.setString(1, newFirstName);
-                pstUpdate.setString(2, newLastName);
-                
-                // Execute Update Query
-                
-                updateCount = pstUpdate.executeUpdate();
-                
-                // Get New Key; Print To Console
-                
-                if (updateCount > 0) {
-            
-                    resultset = pstUpdate.getGeneratedKeys();
-
-                    if (resultset.next()) {
-
-                        System.out.print("Update Successful!  New Key: ");
-                        System.out.println(resultset.getInt(1));
-
-                    }
-
-                }
-                
                 
                 /* Prepare Select Query */
                 
@@ -97,7 +69,14 @@ public class DatabaseTest {
                         
                         /* Get Data; Print as Table Rows */
                         
-                        
+                        int line = 0;
+                        while(resultset.next()) {
+                            JSONObject jsonObject = new JSONObject();
+                            for (int i = 2; i <= columnCount; i++){
+                                jsonObject.put(metadata.getColumnLabel(i), resultset.getString(i));
+                            }
+                            array.add(jsonObject);
+                        }
                         
                     }
 
@@ -142,6 +121,8 @@ public class DatabaseTest {
             if (pstUpdate != null) { try { pstUpdate.close(); pstUpdate = null; } catch (Exception e) {} }
             
         }
+        System.out.println(array);
+        return array;
         
     }
     
